@@ -1,22 +1,23 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import CirclePicker from './circle-picker'
+import RectanglePicker from './rectangle-picker'
 import { UPDATE_STATS_ON_DRAG } from './constants'
-import { distance } from '@turf/turf'
+// import { distance } from '@turf/turf'
 import { v4 as uuidv4 } from 'uuid'
 
 import { useRegionContext } from '../context'
 import { useMapbox } from '../../mapbox'
 import mapboxgl from 'mapbox-gl'
 
-function getInitialRadius(map, units, minRadius, maxRadius) {
-  const bounds = map.getBounds().toArray()
-  const dist = distance(bounds[0], bounds[1], { units })
-  let radius = Math.round(dist / 15)
-  radius = minRadius ? Math.max(minRadius, radius) : radius
-  radius = maxRadius ? Math.min(maxRadius, radius) : radius
+// function getInitialRadius(map, units, minRadius, maxRadius) {
+//   const bounds = map.getBounds().toArray()
+//   const dist = distance(bounds[0], bounds[1], { units })
+//   let radius = Math.round(dist / 15)
+//   radius = minRadius ? Math.max(minRadius, radius) : radius
+//   radius = maxRadius ? Math.min(maxRadius, radius) : radius
 
-  return radius
-}
+//   return radius
+// }
 
 function isValidCoordinate(longitude, latitude) {
   return (
@@ -54,19 +55,23 @@ function RegionPicker({
   fontFamily,
   fontSize,
   units = 'kilometers',
-  initialRadius: initialRadiusProp,
+  // initialRadius: initialRadiusProp,
   initialCenter: initialCenterProp,
-  minRadius,
-  maxRadius,
+  initialWidth,
+  initialHeight,
+  maxWidth,
+  maxHeight,
+  minWidth,
+  minHeight,
 }) {
   const { map } = useMapbox()
   const id = useRef(uuidv4())
 
   const initialCenter = useRef(getInitialCenter(map, initialCenterProp))
 
-  const initialRadius = useRef(
-    initialRadiusProp || getInitialRadius(map, units, minRadius, maxRadius)
-  )
+  // const initialRadius = useRef(
+  //   initialRadiusProp || getInitialRadius(map, units, minRadius, maxRadius)
+  // )
   const { setRegion } = useRegionContext()
 
   const [center, setCenter] = useState(initialCenter.current)
@@ -78,10 +83,10 @@ function RegionPicker({
     }
   }, [])
 
-  const handleCircle = useCallback((circle) => {
-    if (!circle) return
-    setRegion(circle)
-    setCenter(circle.properties.center)
+  const handleRectangle = useCallback((rect) => {
+    if (!rect) return
+    setRegion(rect)
+    setCenter(rect.properties.center)
   }, [])
 
   // TODO: consider extending support for degrees and radians
@@ -90,20 +95,21 @@ function RegionPicker({
   }
 
   return (
-    <CirclePicker
+    <RectanglePicker
       id={id.current}
       map={map}
       center={initialCenter.current}
-      radius={initialRadius.current}
-      onDrag={UPDATE_STATS_ON_DRAG ? handleCircle : undefined}
-      onIdle={handleCircle}
+      width={initialWidth}
+      height={initialHeight}
+      onDrag={UPDATE_STATS_ON_DRAG ? handleRectangle : undefined}
+      onIdle={handleRectangle}
       backgroundColor={backgroundColor}
       color={color}
+      maxWidth={maxWidth}
+      maxHeight={maxHeight}
+      minWidth={minWidth}
+      minHeight={minHeight}
       units={units}
-      fontFamily={fontFamily}
-      fontSize={fontSize}
-      maxRadius={maxRadius}
-      minRadius={minRadius}
     />
   )
 }
