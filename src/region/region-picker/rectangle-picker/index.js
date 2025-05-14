@@ -56,8 +56,8 @@ const RectanglePicker = ({
       }}
     >
       <defs>
-        <clipPath id={`rectangle-clip-${id}`}>
-          <path id={`rectangle-cutout-${id}`} />
+        <clipPath id={`rectangle-clip-${id}`} clipRule='evenodd'>
+          <path id={`rectangle-cutout-${id}`}  fillRule='evenodd'/>
         </clipPath>
       </defs>
 
@@ -75,7 +75,7 @@ const RectanglePicker = ({
         height='100%'
         clipPath={`url(#rectangle-clip-${id})`}
         fill={backgroundColor}
-        fillOpacity={0.8}
+        fillOpacity={0.25}
       />
       <circle id={`handle-${id}`} r={8} fill={color} cursor='ew-resize' />
       {/* <line
