@@ -1,8 +1,8 @@
-import { select } from 'd3-selection'
-import { getPathMaker, project } from '../circle-picker/utils'
 import {
   polygon
 } from '@turf/turf'
+import { select } from 'd3-selection'
+import { getPathMaker, project } from '../circle-picker/utils'
 import CursorManager from './cursor-manager'
 
 export default function RectangleRenderer({
@@ -11,7 +11,7 @@ export default function RectangleRenderer({
   onIdle = (rectangle) => {},
   onDrag = (rectangle) => {},
   initialCenter = { lat: 0, lng: 0 },
-  // all specified in lat lon
+  // all specified in lat lon degrees
   initialWidth = 16, 
   initialHeight = 16, 
   maxWidth = 77,
@@ -28,8 +28,10 @@ export default function RectangleRenderer({
     lat: center.lat + (initialHeight / 2)
   }
   let topLeftCornerXY = project(map, topLeftCorner)
-  let widthScreen = centerXY.x - topLeftCornerXY.x
-  let heightScreen = centerXY.y - topLeftCornerXY.y
+  let widthGeo = initialWidth
+  let heightGeo = initialHeight
+  let widthScreen = (centerXY.x - topLeftCornerXY.x) * 2
+  let heightScreen = (centerXY.y - topLeftCornerXY.y) * 2
   // Store the top-left corner position for fixed-corner resizing
 
   const svg = select(`#rectangle-picker-${id}`).style('pointer-events', 'none')
@@ -64,8 +66,8 @@ export default function RectangleRenderer({
       newHeightGeo = Math.round(newHeightGeo)
       
       // Update values in XY space
-      let widthGeo = newWidthGeo
-      let heightGeo = newHeightGeo
+      widthGeo = newWidthGeo
+      heightGeo = newHeightGeo
 
       // Update the top-left corner position in Geo Coords
 
@@ -77,8 +79,8 @@ export default function RectangleRenderer({
       centerXY = project(map, center)
 
       // Update the width in xy space
-      widthScreen = (topLeftCornerXY.x - centerXY.x) * 2  
-      heightScreen = (topLeftCornerXY.y - centerXY.y) * 2
+      widthScreen = (centerXY.x - topLeftCornerXY.x) * 2  
+      heightScreen = (centerXY.y - topLeftCornerXY.y) * 2
       
       // Redraw rectangle
       setRectangle()
@@ -127,23 +129,34 @@ export default function RectangleRenderer({
         lng: e.lngLat.lng - offset.lng,
         lat: e.lngLat.lat - offset.lat,
       };
-      
-      // Calculate the new screen coordinates
-      const newCenterXY = {
-        x: e.point.x,
-        y: e.point.y,
-      };
-      
+
+      // lat boundaries
+      const maxLat = 70;
+      const minLat = -65;
+
+      if (newCenter.lat + heightGeo / 2 > maxLat) {
+        newCenter.lat = maxLat - heightGeo / 2;
+      } else if (newCenter.lat - heightGeo / 2 < minLat) {
+        newCenter.lat = minLat + heightGeo / 2;
+      }
+
+      const newCenterXY = project(map, newCenter);
+
       // Update the center
       center = newCenter;
       centerXY = newCenterXY;
-      
-      // Update the top-left corner position
-      topLeftCornerXY = {
-        x: centerXY.x - (widthScreen / 2),
-        y: centerXY.y - (heightScreen / 2)
+
+      // Calculate the new top-left corner position
+      topLeftCorner = {
+        lng: center.lng - (widthGeo / 2),
+        lat: center.lat + (heightGeo / 2)
       };
-      
+      topLeftCornerXY = project(map, topLeftCorner)
+
+      // Update the width and height in screen space
+      widthScreen = (centerXY.x - topLeftCornerXY.x) * 2
+      heightScreen = (centerXY.y - topLeftCornerXY.y) * 2
+
       // Redraw the rectangle
       setRectangle();
       onDrag(rectangle);
@@ -204,6 +217,11 @@ export default function RectangleRenderer({
     const onMove = () => {
       // Update the top-left corner position when map moves
       resetCenterXY()
+      // recalculate screen width and height
+      topLeftCornerXY = project(map, topLeftCorner)
+      widthScreen = (centerXY.x - topLeftCornerXY.x) * 2
+      heightScreen = (centerXY.y - topLeftCornerXY.y) * 2
+
       topLeftCornerXY = {
         x: centerXY.x - (widthScreen / 2),
         y: centerXY.y - (heightScreen / 2)
@@ -272,7 +290,7 @@ export default function RectangleRenderer({
   function resetCenterXY() {
     // reset centerXY value based on latest `map` value
     centerXY = project(map, center, { referencePoint: centerXY })
-  }
+  }    
 
   function setRectangle() {
     // ensure that centerXY is up-to-date with map
