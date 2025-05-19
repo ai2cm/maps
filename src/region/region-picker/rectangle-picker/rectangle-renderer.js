@@ -11,24 +11,26 @@ export default function RectangleRenderer({
   onIdle = (rectangle) => {},
   onDrag = (rectangle) => {},
   initialCenter = { lat: 0, lng: 0 },
-  initialWidth = 100, 
-  initialHeight = 100, 
-  maxWidth = 1000,
-  maxHeight = 1000,
-  minWidth = 50,
-  minHeight = 50,
+  // all specified in lat lon
+  initialWidth = 16, 
+  initialHeight = 16, 
+  maxWidth = 77,
+  maxHeight = 28,
+  minWidth = 16,
+  minHeight = 16,
   units = 'kilometers',
 }) {
   let rectangle = null
   let center = initialCenter
   let centerXY = project(map, center)
-  let width = initialWidth
-  let height = initialHeight
-  // Store the top-left corner position for fixed-corner resizing
-  let topLeftCornerXY = {
-    x: centerXY.x - (width / 2),
-    y: centerXY.y - (height / 2)
+  let topLeftCorner = {
+    lng: center.lng - (initialWidth / 2),
+    lat: center.lat + (initialHeight / 2)
   }
+  let topLeftCornerXY = project(map, topLeftCorner)
+  let widthScreen = centerXY.x - topLeftCornerXY.x
+  let heightScreen = centerXY.y - topLeftCornerXY.y
+  // Store the top-left corner position for fixed-corner resizing
 
   const svg = select(`#rectangle-picker-${id}`).style('pointer-events', 'none')
   const svgRectangle = select(`#rectangle-${id}`).style('pointer-events', 'all')
@@ -43,29 +45,40 @@ export default function RectangleRenderer({
     const handle = svgHandle
     const onMouseMove = (e) => {
       const mouseXY = e.point
+      const mouseLatLng = map.unproject(mouseXY)
       
-      // Calculate new width and height based on the fixed top-left corner
-      let newWidth = Math.max(mouseXY.x - topLeftCornerXY.x, 0)
-      let newHeight = Math.max(mouseXY.y - topLeftCornerXY.y, 0)
+      // Calculate the new top-left corner position in Geo Coords
+      // top left will always be less than mouse?
+      let newWidthGeo = Math.max(mouseLatLng.lng - topLeftCorner.lng, 0)
+      // lat mouse will always be less than top left
+      let newHeightGeo = Math.max(topLeftCorner.lat - mouseLatLng.lat, 0)
       
       // Apply min/max constraints
-      if (maxWidth) newWidth = Math.min(newWidth, maxWidth)
-      if (minWidth) newWidth = Math.max(newWidth, minWidth)
-      if (maxHeight) newHeight = Math.min(newHeight, maxHeight)
-      if (minHeight) newHeight = Math.max(newHeight, minHeight)
+      if (maxWidth) newWidthGeo = Math.min(newWidthGeo, maxWidth)
+      if (minWidth) newWidthGeo = Math.max(newWidthGeo, minWidth)
+      if (maxHeight) newHeightGeo = Math.min(newHeightGeo, maxHeight)
+      if (minHeight) newHeightGeo = Math.max(newHeightGeo, minHeight)
+
+      // round the height/width to the nearest integer
+      newWidthGeo = Math.round(newWidthGeo)
+      newHeightGeo = Math.round(newHeightGeo)
       
-      // Update values
-      width = newWidth
-      height = newHeight
-      
-      // Update center based on the new dimensions (keeping top-left fixed)
-      centerXY = {
-        x: topLeftCornerXY.x + (width / 2),
-        y: topLeftCornerXY.y + (height / 2)
+      // Update values in XY space
+      let widthGeo = newWidthGeo
+      let heightGeo = newHeightGeo
+
+      // Update the top-left corner position in Geo Coords
+
+
+      center = {
+        lng: topLeftCorner.lng + (widthGeo / 2),
+        lat: topLeftCorner.lat - (heightGeo / 2)
       }
-      
-      // Update geographic center
-      center = map.unproject(centerXY)
+      centerXY = project(map, center)
+
+      // Update the width in xy space
+      widthScreen = (topLeftCornerXY.x - centerXY.x) * 2  
+      heightScreen = (topLeftCornerXY.y - centerXY.y) * 2
       
       // Redraw rectangle
       setRectangle()
@@ -127,8 +140,8 @@ export default function RectangleRenderer({
       
       // Update the top-left corner position
       topLeftCornerXY = {
-        x: centerXY.x - (width / 2),
-        y: centerXY.y - (height / 2)
+        x: centerXY.x - (widthScreen / 2),
+        y: centerXY.y - (heightScreen / 2)
       };
       
       // Redraw the rectangle
@@ -192,8 +205,8 @@ export default function RectangleRenderer({
       // Update the top-left corner position when map moves
       resetCenterXY()
       topLeftCornerXY = {
-        x: centerXY.x - (width / 2),
-        y: centerXY.y - (height / 2)
+        x: centerXY.x - (widthScreen / 2),
+        y: centerXY.y - (heightScreen / 2)
       }
       setRectangle()
     }
@@ -249,8 +262,8 @@ export default function RectangleRenderer({
       centerXY = _point || project(map, center)
       // Update the top-left corner position
       topLeftCornerXY = {
-        x: centerXY.x - (width / 2),
-        y: centerXY.y - (height / 2)
+        x: centerXY.x - (widthScreen / 2),
+        y: centerXY.y - (heightScreen / 2)
       }
       setRectangle()
     }
@@ -270,20 +283,20 @@ export default function RectangleRenderer({
     })
 
     // update svg rectangle
-    rectangle = geoRectangle(center, width, height)
+    rectangle = geoRectangle(center, widthScreen, heightScreen)
     const path = makePath(rectangle)
     svgRectangle.attr('d', path)
 
     // update cutout
-    const cutoutRectangle = geoRectangle(center, width, height, true)
+    const cutoutRectangle = geoRectangle(center, widthScreen, heightScreen, true)
     const cutoutPath = makePath(cutoutRectangle)
     const { width: svgWidth, height: svgHeight } = svg.node().getBBox()
     svgRectangleCutout.attr('d', cutoutPath + ` M0,0H${svgWidth}V${svgHeight}H0V0z`)
 
     // Update handle positions
     const handleXY = {
-      x: centerXY.x + (width / 2),
-      y: centerXY.y + (height / 2)
+      x: centerXY.x + (widthScreen / 2),
+      y: centerXY.y + (heightScreen / 2)
     }
 
     svgHandle.attr('cx', handleXY.x).attr('cy', handleXY.y)
