@@ -16,8 +16,8 @@ export default function RectangleRenderer({
   initialHeight = 16, 
   maxWidth = 77,
   maxHeight = 28,
-  minWidth = 16,
-  minHeight = 16,
+  minWidth = 12,
+  minHeight = 12,
   units = 'kilometers',
 }) {
   let rectangle = null
@@ -140,6 +140,10 @@ export default function RectangleRenderer({
         newCenter.lat = minLat + heightGeo / 2;
       }
 
+      // round to nearest integer
+      // newCenter.lng = Math.round(newCenter.lng)
+      // newCenter.lat = Math.round(newCenter.lat)
+
       const newCenterXY = project(map, newCenter);
 
       // Update the center
@@ -254,15 +258,23 @@ export default function RectangleRenderer({
       [bottomLeft.lng, bottomLeft.lat],
       [topLeft.lng, topLeft.lat] // Close the polygon
     ]
+
+    const latTop = topLeft.lat
+    const latBottom = bottomLeft.lat
+    const lngLeft = topLeft.lng
+    const lngRight = topRight.lng
     
     const rect = polygon([coords], {
-      properties: {
         center,
         width,
         height,
         units,
+        latTop,
+        latBottom,
+        lngLeft,
+        lngRight,
       }
-    })
+    )
     
     rect.properties.area = width * height
     rect.properties.zoom = map.getZoom()

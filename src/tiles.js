@@ -1,28 +1,27 @@
 import ndarray from 'ndarray'
-import { distance } from '@turf/turf'
 
-import { vert, frag } from './shaders'
+import { DEFAULT_FILL_VALUES } from './constants'
+import initializeStore from './initialize-store'
+import { frag, vert } from './shaders'
+import Tile from './tile'
 import {
-  zoomToLevel,
+  cameraToPoint,
+  getAdjustedOffset,
+  getBands,
+  getChunks,
+  getKeysToRender,
+  getOverlappingAncestor,
+  getPositions,
+  getSelectorHash,
+  getSiblings,
+  getTilesOfRegion,
   keyToTile,
+  mercatorYFromLat,
   pointToCamera,
   pointToTile,
-  getPositions,
-  getSiblings,
-  getKeysToRender,
-  getAdjustedOffset,
-  getOverlappingAncestor,
-  cameraToPoint,
-  getTilesOfRegion,
-  getBands,
   setObjectValues,
-  getChunks,
-  getSelectorHash,
-  mercatorYFromLat,
+  zoomToLevel,
 } from './utils'
-import { DEFAULT_FILL_VALUES } from './constants'
-import Tile from './tile'
-import initializeStore from './initialize-store'
 
 export const createTiles = (regl, opts) => {
   return new Tiles(opts)
@@ -465,7 +464,7 @@ export const createTiles = (regl, opts) => {
 
         const lat0 = this.order[1] * (90 - y * sizeDeg)
 
-        const { center, radius, units } = region.properties
+        const { center, latTop, latBottom, lngLeft, lngRight, units } = region.properties
         for (let i = 0; i < this.size; i++) {
           for (let j = 0; j < this.size; j++) {
             const [mercLon, mercLat] = cameraToPoint(
@@ -479,14 +478,20 @@ export const createTiles = (regl, opts) => {
                 ? lat0 - this.order[1] * stepDeg * j
                 : mercLat,
             ]
-            const distanceToCenter = distance(
-              [center.lng, center.lat],
-              pointCoords,
-              {
-                units,
-              }
+            // const distanceToCenter = distance(
+            //   [center.lng, center.lat],
+            //   pointCoords,
+            //   {
+            //     units,
+            //   }
+            // )
+            const isInBounds = (
+              pointCoords[1] <= latTop && 
+              pointCoords[1] >= latBottom &&
+              pointCoords[0] >= lngLeft && 
+              pointCoords[0] <= lngRight
             )
-            if (distanceToCenter < radius) {
+            if (isInBounds) {
               lon.push(pointCoords[0])
               lat.push(pointCoords[1])
 
