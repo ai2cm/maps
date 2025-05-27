@@ -39,10 +39,11 @@ const Raster = (props) => {
     regionOptions.setData({ value: null })
 
     const data = await tiles.current.queryRegion(r, s)
+    const center = r.properties?.center || undefined
 
     // Invoke callback as long as a more recent query has not already been initiated
     if (lastQueried.current === queryStart) {
-      regionOptions.setData({ value: data })
+      regionOptions.setData({ value: data, center: center})
     }
   }
 
