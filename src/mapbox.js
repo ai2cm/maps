@@ -28,6 +28,13 @@ const Mapbox = ({
   const map = useRef()
   const [ready, setReady] = useState()
 
+  // Add this useEffect to handle center prop changes
+  useEffect(() => {
+    if (map.current && center) {
+      map.current.setCenter(center)
+    }
+  }, [center])
+
   const ref = useCallback((node) => {
     const mapboxStyle = { version: 8, sources: {}, layers: [] }
     if (glyphs) {
