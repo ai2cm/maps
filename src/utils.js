@@ -74,6 +74,9 @@ export const cameraToPoint = (x, y, z) => {
 }
 
 export const zoomToLevel = (zoom, maxZoom) => {
+  if (maxZoom == 0) {
+    return 0
+  }
   if (maxZoom) return Math.min(Math.max(0, Math.floor(zoom)), maxZoom)
   return Math.max(0, Math.floor(zoom))
 }
