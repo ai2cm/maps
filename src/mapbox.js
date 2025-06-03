@@ -32,6 +32,7 @@ const Mapbox = ({
   useEffect(() => {
     if (map.current && center) {
       map.current.setCenter(center)
+      map.current.setMaxBounds(maxBounds)
     }
   }, [center])
 

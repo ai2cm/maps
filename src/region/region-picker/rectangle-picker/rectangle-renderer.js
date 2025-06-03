@@ -16,8 +16,8 @@ export default function RectangleRenderer({
   initialHeight = 16, 
   maxWidth = 77,
   maxHeight = 28,
-  minWidth = 12,
-  minHeight = 12,
+  minWidth = 8,
+  minHeight = 8,
   units = 'kilometers',
 }) {
   let rectangle = null
@@ -70,8 +70,6 @@ export default function RectangleRenderer({
       heightGeo = newHeightGeo
 
       // Update the top-left corner position in Geo Coords
-
-
       center = {
         lng: topLeftCorner.lng + (widthGeo / 2),
         lat: topLeftCorner.lat - (heightGeo / 2)
@@ -277,6 +275,11 @@ export default function RectangleRenderer({
     )
     
     rect.properties.area = width * height
+    rect.properties.aspectRatio = (latTop - latBottom) / (lngRight - lngLeft)
+    rect.properties.mapBounds = [
+      [lngLeft, latBottom],
+      [lngRight, latTop]
+    ]
     rect.properties.zoom = map.getZoom()
     
     return rect

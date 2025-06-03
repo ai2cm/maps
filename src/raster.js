@@ -107,12 +107,19 @@ const Raster = (props) => {
     tiles.current.updateColormap({ colormap })
   }, [colormap])
 
+  // TODO - perhaps udpates to bounds or aspectratio should trigger
   useEffect(() => {
     if (region && regionOptions?.setData) {
       queryRegion(region, regionOptions.selector || selector)
     }
     if (region && regionOptions?.setCenter) {
       regionOptions.setCenter(region.properties.center)
+    }
+    if (region && regionOptions?.setAspectRatio) {
+      regionOptions.setAspectRatio(region.properties.aspectRatio)
+    }
+    if (region && regionOptions?.setBounds) {
+      regionOptions.setBounds(region.properties.mapBounds)
     }
   }, [
     regionOptions?.setData,
