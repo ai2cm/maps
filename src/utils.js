@@ -73,12 +73,19 @@ export const cameraToPoint = (x, y, z) => {
   return [lon, lat]
 }
 
-export const zoomToLevel = (zoom, maxZoom) => {
-  if (maxZoom == 0) {
-    return 0
+export const zoomToLevel = (zoom, maxZoom, minZoom) => {
+  let level =  Math.max(0, Math.floor(zoom))
+  const useMax = maxZoom != null 
+  const useMin = minZoom != null
+
+  if (useMax) {
+    level = Math.min(level, maxZoom)
   }
-  if (maxZoom) return Math.min(Math.max(0, Math.floor(zoom)), maxZoom)
-  return Math.max(0, Math.floor(zoom))
+
+  if (useMin) {
+    level = Math.max(level, minZoom)
+  }
+  return level
 }
 
 export const mercatorYFromLat = (lat) => {

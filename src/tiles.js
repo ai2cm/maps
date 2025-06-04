@@ -129,7 +129,7 @@ export const createTiles = (regl, opts) => {
           if (setMetadata) setMetadata(metadata)
           this.maxZoom = maxZoom
           this.minZoom = minZoom
-          this.level = zoomToLevel(this.zoom, maxZoom)
+          this.level = zoomToLevel(this.zoom, maxZoom, minZoom)
           const position = getPositions(tileSize, mode)
           this.position = regl.buffer(position)
           this.size = tileSize
@@ -322,7 +322,7 @@ export const createTiles = (regl, opts) => {
         return
       }
 
-      const level = zoomToLevel(zoom, this.maxZoom)
+      const level = zoomToLevel(zoom, this.maxZoom, this.minZoom)
       const tile = pointToTile(
         center.lng,
         center.lat,
