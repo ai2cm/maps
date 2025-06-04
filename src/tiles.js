@@ -124,9 +124,11 @@ export const createTiles = (regl, opts) => {
           maxZoom,
           tileSize,
           crs,
+          minZoom,
         }) => {
           if (setMetadata) setMetadata(metadata)
           this.maxZoom = maxZoom
+          this.minZoom = minZoom
           this.level = zoomToLevel(this.zoom, maxZoom)
           const position = getPositions(tileSize, mode)
           this.position = regl.buffer(position)
@@ -256,7 +258,7 @@ export const createTiles = (regl, opts) => {
         .reduce((accum, key) => {
           // Get optimum set of keys to render based on which have been fully loaded
           // (potentially mixing levels of pyramid)
-          const keysToRender = getKeysToRender(key, this.tiles, this.maxZoom)
+          const keysToRender = getKeysToRender(key, this.tiles, this.maxZoom, this.minZoom)
           keysToRender.forEach((keyToRender) => {
             const offsets = this.active[key]
 

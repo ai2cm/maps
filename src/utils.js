@@ -187,12 +187,12 @@ export const getSiblings = (
   }, {})
 }
 
-export const getKeysToRender = (targetKey, tiles, maxZoom) => {
-  // const ancestor = getAncestorToRender(targetKey, tiles)
+export const getKeysToRender = (targetKey, tiles, maxZoom, minZoom) => {
+  const ancestor = getAncestorToRender(targetKey, tiles, minZoom)
 
-  // if (ancestor) {
-  //   return [ancestor]
-  // }
+  if (ancestor) {
+    return [ancestor]
+  }
 
   const descendants = getDescendantsToRender(targetKey, tiles, maxZoom)
   if (descendants.length) {
@@ -202,9 +202,9 @@ export const getKeysToRender = (targetKey, tiles, maxZoom) => {
   return [targetKey]
 }
 
-export const getAncestorToRender = (targetKey, tiles) => {
+export const getAncestorToRender = (targetKey, tiles, minZoom) => {
   let [x, y, z] = keyToTile(targetKey)
-  while (z >= 0) {
+  while (z >= minZoom) {
     const key = tileToKey([x, y, z])
     if (tiles[key].isBufferPopulated()) {
       return key
@@ -351,6 +351,7 @@ export const getPyramidMetadata = (multiscales) => {
 
   const levels = datasets.map((dataset) => Number(dataset.path))
   const maxZoom = Math.max(...levels)
+  const minZoom = Math.min(...levels)
   const tileSize = datasets[0].pixels_per_tile
   let crs = datasets[0].crs
 
@@ -366,7 +367,7 @@ export const getPyramidMetadata = (multiscales) => {
     )
     crs = 'EPSG:3857'
   }
-  return { levels, maxZoom, tileSize, crs }
+  return { levels, maxZoom, tileSize, crs, minZoom }
 }
 
 /**

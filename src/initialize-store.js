@@ -10,7 +10,7 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
   let chunks
   let fill_value
   let dtype
-  let levels, maxZoom, tileSize, crs
+  let levels, maxZoom, tileSize, crs, minZoom
   const coordinates = {}
   switch (version) {
     case 'v2':
@@ -21,7 +21,7 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
           resolve()
         })
       )
-      ;({ levels, maxZoom, tileSize, crs } = getPyramidMetadata(
+      ;({ levels, maxZoom, tileSize, crs, minZoom } = getPyramidMetadata(
         metadata.metadata['.zattrs'].multiscales
       ))
 
@@ -115,6 +115,7 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
     maxZoom,
     tileSize,
     crs,
+    minZoom
   }
 }
 
