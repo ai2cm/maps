@@ -188,11 +188,11 @@ export const getSiblings = (
 }
 
 export const getKeysToRender = (targetKey, tiles, maxZoom) => {
-  const ancestor = getAncestorToRender(targetKey, tiles)
+  // const ancestor = getAncestorToRender(targetKey, tiles)
 
-  if (ancestor) {
-    return [ancestor]
-  }
+  // if (ancestor) {
+  //   return [ancestor]
+  // }
 
   const descendants = getDescendantsToRender(targetKey, tiles, maxZoom)
   if (descendants.length) {
