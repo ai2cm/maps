@@ -259,8 +259,15 @@ export default function RectangleRenderer({
 
     const latTop = topLeft.lat
     const latBottom = bottomLeft.lat
-    const lngLeft = topLeft.lng
-    const lngRight = topRight.lng
+    let lngLeft = topLeft.lng
+    let lngRight = topRight.lng
+    if (lngLeft < -180) {
+      lngLeft += 360
+      lngRight += 360
+    } else if (lngRight > 180) {
+      lngLeft -= 360
+      lngRight -= 360
+    }
     
     const rect = polygon([coords], {
         center,
