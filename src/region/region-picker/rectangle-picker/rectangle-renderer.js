@@ -12,8 +12,8 @@ export default function RectangleRenderer({
   onDrag = (rectangle) => {},
   initialCenter = { lat: 0, lng: 0 },
   // all specified in lat lon degrees
-  initialWidth = 16, 
-  initialHeight = 16, 
+  initialWidth = 10, 
+  initialHeight = 10, 
   maxWidth = 77,
   maxHeight = 28,
   minWidth = 8,
